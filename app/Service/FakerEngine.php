@@ -14,12 +14,14 @@ class FakerEngine
     private array $mapping = [];      // original -> fake (pro Job)
     private array $rules;
     private ?string $deterministicSeed;
+    private ?PreserveRuleService $preserveService;
     
-    public function __construct(?string $seed = null)
+    public function __construct(?string $seed = null, ?PreserveRuleService $preserveService = null)
     {
         $this->rules = require __DIR__ . '/../../config/pii-rules.php';
         $this->faker = Factory::create($this->rules['faker_locale'] ?? 'de_DE');
         $this->deterministicSeed = $seed;
+        $this->preserveService = $preserveService;
         
         if ($seed) {
             $this->faker->seed(crc32($seed));
@@ -29,9 +31,15 @@ class FakerEngine
     /**
      * Erzeugt einen Fake-Wert für einen gegebenen Typ
      * Gleiche Originalwerte liefern konsistent denselben Fake-Wert
+     * Preserve-Regeln werden berücksichtigt (Ausnahmewerte nicht pseudonymisieren)
      */
     public function fake(string $type, string $original): string
     {
+        // Preserve-Check: Wert in Ausnahmeliste?
+        if ($this->preserveService && $this->preserveService->shouldPreserve($original)) {
+            return $original;
+        }
+        
         $cacheKey = $type . '|' . $original;
         
         if (isset($this->mapping[$cacheKey])) {

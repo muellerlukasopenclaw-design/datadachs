@@ -9,6 +9,7 @@ namespace DataDachs\Controller;
 use DataDachs\Service\JobManager;
 use DataDachs\Service\PiiDetector;
 use DataDachs\Service\FakerEngine;
+use DataDachs\Service\PreserveRuleService;
 use DataDachs\Parser\SqlParser;
 use DataDachs\Parser\CsvParser;
 use DataDachs\Parser\JsonParser;
@@ -21,12 +22,14 @@ class ProcessController
     private JobManager $jobManager;
     private PiiDetector $detector;
     private FakerEngine $faker;
+    private ?PreserveRuleService $preserveService;
 
-    public function __construct(JobManager $jobManager, PiiDetector $detector, FakerEngine $faker)
+    public function __construct(JobManager $jobManager, PiiDetector $detector, FakerEngine $faker, ?PreserveRuleService $preserveService = null)
     {
         $this->jobManager = $jobManager;
         $this->detector = $detector;
         $this->faker = $faker;
+        $this->preserveService = $preserveService;
     }
 
     public function process(Request $request, Response $response, array $args): Response

@@ -27,4 +27,10 @@ return [
         'level' => $_ENV['LOG_LEVEL'] ?? 'warning',
         'path' => __DIR__ . '/../storage/logs',
     ],
+    
+    'preserve' => [
+        'rules' => $_ENV['DATADACHS_PRESERVE_RULES'] ?? null,
+        'case_sensitive' => filter_var($_ENV['DATADACHS_PRESERVE_CASE_SENSITIVE'] ?? false, FILTER_VALIDATE_BOOL),
+        'use_defaults' => filter_var($_ENV['DATADACHS_PRESERVE_USE_DEFAULTS'] ?? true, FILTER_VALIDATE_BOOL),
+    ],
 ];

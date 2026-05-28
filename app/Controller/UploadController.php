@@ -9,6 +9,7 @@ namespace DataDachs\Controller;
 use DataDachs\Service\JobManager;
 use DataDachs\Service\PiiDetector;
 use DataDachs\Service\FakerEngine;
+use DataDachs\Service\PreserveRuleService;
 use DataDachs\Parser\SqlParser;
 use DataDachs\Parser\CsvParser;
 use DataDachs\Parser\JsonParser;
@@ -22,13 +23,15 @@ class UploadController
     private PiiDetector $detector;
     private FakerEngine $faker;
     private array $config;
+    private ?PreserveRuleService $preserveService;
 
-    public function __construct(JobManager $jobManager, PiiDetector $detector, FakerEngine $faker, array $config)
+    public function __construct(JobManager $jobManager, PiiDetector $detector, FakerEngine $faker, array $config, ?PreserveRuleService $preserveService = null)
     {
         $this->jobManager = $jobManager;
         $this->detector = $detector;
         $this->faker = $faker;
         $this->config = $config;
+        $this->preserveService = $preserveService;
     }
 
     public function handleUpload(Request $request, Response $response): Response
@@ -66,10 +69,17 @@ class UploadController
             return $this->jsonResponse($response, ['error' => 'Analyse fehlgeschlagen: ' . $e->getMessage()], 500);
         }
 
-        return $this->jsonResponse($response, [
+        $responseData = [
             'job_id' => $jobId,
             'redirect' => '/review/' . $jobId,
-        ]);
+        ];
+        
+        // Preserve-Regeln in Response einfügen für UI-Anzeige
+        if ($this->preserveService) {
+            $responseData['preserve_rules'] = $this->preserveService->getRules();
+        }
+        
+        return $this->jsonResponse($response, $responseData);
     }
 
     private function analyzeContent(string $content, string $extension): ?array

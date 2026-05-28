@@ -22,7 +22,7 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "DataDachs\\Tests\\": "tests/"
+            "DataDachs\\Tests\\": "tests/unit/"
         }
     },
     "scripts": {

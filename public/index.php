@@ -25,13 +25,33 @@ $builder->addDefinitions([
     \DataDachs\Service\FakerEngine::class => function () {
         return new \DataDachs\Service\FakerEngine($_ENV['DETERMINISTIC_SEED'] ?? null);
     },
+    \DataDachs\Service\PreserveRuleService::class => function () {
+        $preserveConfig = $config['preserve'] ?? [];
+        $rules = $preserveConfig['rules'] ?? null;
+        $caseSensitive = $preserveConfig['case_sensitive'] ?? false;
+        $useDefaults = $preserveConfig['use_defaults'] ?? true;
+        
+        if ($useDefaults && empty($rules)) {
+            return \DataDachs\Service\PreserveRuleService::withDefaults();
+        }
+        
+        $service = new \DataDachs\Service\PreserveRuleService($rules, $caseSensitive);
+        
+        if ($useDefaults) {
+            foreach (\DataDachs\Service\PreserveRuleService::getDefaultRules() as $rule) {
+                $service->addRule($rule);
+            }
+        }
+        
+        return $service;
+    },
     // Controller
     \DataDachs\Controller\UploadController::class => \DI\create(\DataDachs\Controller\UploadController::class)
-        ->constructor(\DI\get(\DataDachs\Service\JobManager::class), \DI\get(\DataDachs\Service\PiiDetector::class), \DI\get(\DataDachs\Service\FakerEngine::class), \DI\get('config')),
+        ->constructor(\DI\get(\DataDachs\Service\JobManager::class), \DI\get(\DataDachs\Service\PiiDetector::class), \DI\get(\DataDachs\Service\FakerEngine::class), \DI\get('config'), \DI\get(\DataDachs\Service\PreserveRuleService::class)),
     \DataDachs\Controller\ReviewController::class => \DI\create(\DataDachs\Controller\ReviewController::class)
         ->constructor(\DI\get(\DataDachs\Service\JobManager::class)),
     \DataDachs\Controller\ProcessController::class => \DI\create(\DataDachs\Controller\ProcessController::class)
-        ->constructor(\DI\get(\DataDachs\Service\JobManager::class), \DI\get(\DataDachs\Service\PiiDetector::class), \DI\get(\DataDachs\Service\FakerEngine::class)),
+        ->constructor(\DI\get(\DataDachs\Service\JobManager::class), \DI\get(\DataDachs\Service\PiiDetector::class), \DI\get(\DataDachs\Service\FakerEngine::class), \DI\get(\DataDachs\Service\PreserveRuleService::class)),
     \DataDachs\Controller\DownloadController::class => \DI\create(\DataDachs\Controller\DownloadController::class)
         ->constructor(\DI\get(\DataDachs\Service\JobManager::class)),
     \DataDachs\Controller\CleanupController::class => \DI\create(\DataDachs\Controller\CleanupController::class)
