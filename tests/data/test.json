@@ -1,0 +1,32 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "firstname": "Max",
+      "lastname": "Müller",
+      "email": "max.mueller@example.com",
+      "phone": "+49 211 123456",
+      "birthdate": "1985-04-12",
+      "address": {
+        "street": "Hauptstraße 1",
+        "city": "Düsseldorf",
+        "zip": "40210"
+      }
+    },
+    {
+      "id": 2,
+      "firstname": "Anna",
+      "lastname": "Schmidt",
+      "email": "anna.schmidt@example.com",
+      "phone": "+49 30 987654",
+      "birthdate": "1990-08-23",
+      "address": {
+        "street": "Berliner Straße 42",
+        "city": "Berlin",
+        "zip": "10115"
+      }
+    }
+  ],
+  "company": "Müller GmbH",
+  "contact_email": "info@mueller-gmbh.de"
+}

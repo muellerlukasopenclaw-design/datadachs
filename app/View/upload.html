@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DataDachs – Pseudonymisierung für Testdaten</title>
+    <style>
+        :root {
+            --bg: #1a1a1a;
+            --bg-card: #252525;
+            --text: #e8e8e8;
+            --text-muted: #888;
+            --accent: #7cb342;
+            --accent-hover: #8bc34a;
+            --border: #333;
+            --danger: #e57373;
+            --warning: #ffb74d;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem 1rem;
+        }
+        .logo {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .logo-icon { font-size: 2.5rem; }
+        .tagline {
+            color: var(--text-muted);
+            margin-bottom: 2rem;
+            font-size: 0.95rem;
+        }
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 2rem;
+            width: 100%;
+            max-width: 600px;
+        }
+        .upload-zone {
+            border: 2px dashed var(--border);
+            border-radius: 8px;
+            padding: 3rem 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .upload-zone:hover, .upload-zone.dragover {
+            border-color: var(--accent);
+            background: rgba(124, 179, 66, 0.05);
+        }
+        .upload-zone .icon { font-size: 3rem; margin-bottom: 1rem; }
+        .upload-zone p { color: var(--text-muted); margin-bottom: 0.5rem; }
+        .upload-zone .formats { font-size: 0.85rem; color: var(--text-muted); }
+        input[type="file"] { display: none; }
+        .btn {
+            background: var(--accent);
+            color: #1a1a1a;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 1rem;
+            transition: background 0.2s;
+        }
+        .btn:hover { background: var(--accent-hover); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .info {
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border);
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+        .info ul { margin: 0.5rem 0 0 1.2rem; }
+        .info li { margin: 0.25rem 0; }
+        .footer {
+            margin-top: 2rem;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
+        .progress {
+            display: none;
+            margin-top: 1rem;
+            text-align: center;
+        }
+        .progress.active { display: block; }
+        .spinner {
+            border: 3px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            width: 2rem;
+            height: 2rem;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 0.5rem;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .error {
+            background: rgba(229, 115, 115, 0.1);
+            border: 1px solid var(--danger);
+            color: var(--danger);
+            padding: 0.75rem;
+            border-radius: 6px;
+            margin-top: 1rem;
+            display: none;
+        }
+        .error.show { display: block; }
+    </style>
+</head>
+<body>
+    <div class="logo">
+        <span class="logo-icon">🦡</span>
+        DataDachs
+    </div>
+    <div class="tagline">Pseudonymisierung für Testdaten – lokal, sicher, realistisch</div>
+
+    <div class="card">
+        <div class="upload-zone" id="dropZone">
+            <div class="icon">📁</div>
+            <p>Datei hierher ziehen oder klicken zum Auswählen</p>
+            <div class="formats">.sql .csv .json .txt</div>
+            <input type="file" id="fileInput" accept=".sql,.csv,.json,.txt">
+        </div>
+        <div class="progress" id="progress">
+            <div class="spinner"></div>
+            <p>Datei wird analysiert...</p>
+        </div>
+        <div class="error" id="error"></div>
+        <button class="btn" id="uploadBtn" disabled>Upload & Analyse starten</button>
+
+        <div class="info">
+            <strong>Was passiert hier?</strong>
+            <ul>
+                <li>Datei wird lokal analysiert (kein Upload in die Cloud)</li>
+                <li>PII-Kandidaten werden per Heuristik erkannt</li>
+                <li>Du bestätigst die Regeln vor der Pseudonymisierung</li>
+                <li>Realistische Ersatzdaten per Faker (de_DE)</li>
+                <li>Temporäre Daten werden automatisch gelöscht</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="footer">
+        DataDachs v1.0 – Lokale Pseudonymisierung ohne Cloud
+    </div>
+
+    <script>
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const progress = document.getElementById('progress');
+        const error = document.getElementById('error');
+        let selectedFile = null;
+
+        dropZone.addEventListener('click', () => fileInput.click());
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragover');
+        });
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length) handleFile(files[0]);
+        });
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length) handleFile(e.target.files[0]);
+        });
+
+        function handleFile(file) {
+            const ext = file.name.split('.').pop().toLowerCase();
+            const allowed = ['sql', 'csv', 'json', 'txt'];
+            if (!allowed.includes(ext)) {
+                showError('Dateityp nicht unterstützt. Erlaubt: ' + allowed.join(', '));
+                return;
+            }
+            selectedFile = file;
+            dropZone.querySelector('p').textContent = file.name;
+            uploadBtn.disabled = false;
+            error.classList.remove('show');
+        }
+
+        uploadBtn.addEventListener('click', async () => {
+            if (!selectedFile) return;
+            uploadBtn.disabled = true;
+            progress.classList.add('active');
+            error.classList.remove('show');
+
+            const formData = new FormData();
+            formData.append('file', selectedFile);
+
+            try {
+                const res = await fetch('/upload', { method: 'POST', body: formData });
+                const data = await res.json();
+                if (data.error) {
+                    showError(data.error);
+                    uploadBtn.disabled = false;
+                } else {
+                    window.location.href = data.redirect;
+                }
+            } catch (e) {
+                showError('Netzwerkfehler: ' + e.message);
+                uploadBtn.disabled = false;
+            }
+            progress.classList.remove('active');
+        });
+
+        function showError(msg) {
+            error.textContent = msg;
+            error.classList.add('show');
+        }
+    </script>
+</body>
+</html>

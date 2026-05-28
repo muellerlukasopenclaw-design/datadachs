@@ -1,0 +1,4 @@
+firstname,lastname,email,phone,birthdate,street,city,zip,company
+Max,Müller,max.mueller@example.com,+49 211 123456,1985-04-12,Hauptstraße 1,Düsseldorf,40210,Müller GmbH
+Anna,Schmidt,anna.schmidt@example.com,+49 30 987654,1990-08-23,Berliner Straße 42,Berlin,10115,Schmidt & Co
+Jürgen,Größer,juergen.groesser@example.com,+49 89 555555,1978-12-05,Münchener Weg 7,München,80331,Größer AG

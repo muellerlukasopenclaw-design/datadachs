@@ -1,0 +1,16 @@
+Kontaktdaten:
+
+Max Müller
+E-Mail: max.mueller@example.com
+Telefon: +49 211 123456
+Geburtsdatum: 12.04.1985
+Adresse: Hauptstraße 1, 40210 Düsseldorf
+IBAN: DE89370400440532013000
+
+Anna Schmidt
+E-Mail: anna.schmidt@example.com
+Telefon: +49 30 987654
+IP: 192.168.1.100
+
+Firma: Müller GmbH
+Website: https://www.mueller-gmbh.de

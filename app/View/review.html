@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DataDachs – Regeln reviewen</title>
+    <style>
+        :root {
+            --bg: #1a1a1a;
+            --bg-card: #252525;
+            --text: #e8e8e8;
+            --text-muted: #888;
+            --accent: #7cb342;
+            --accent-hover: #8bc34a;
+            --border: #333;
+            --danger: #e57373;
+            --warning: #ffb74d;
+            --success: #81c784;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 2rem 1rem;
+        }
+        .header {
+            max-width: 900px;
+            margin: 0 auto 2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .header h1 { font-size: 1.5rem; }
+        .header .icon { font-size: 1.8rem; }
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            max-width: 900px;
+            margin: 0 auto 1rem;
+        }
+        .card h2 {
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            color: var(--accent);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+        th, td {
+            text-align: left;
+            padding: 0.6rem 0.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+        th {
+            color: var(--text-muted);
+            font-weight: 500;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+        }
+        select {
+            background: var(--bg);
+            color: var(--text);
+            border: 1px solid var(--border);
+            padding: 0.3rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.85rem;
+        }
+        .score {
+            display: inline-block;
+            padding: 0.15rem 0.4rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .score-high { background: rgba(229, 115, 115, 0.2); color: var(--danger); }
+        .score-med { background: rgba(255, 183, 77, 0.2); color: var(--warning); }
+        .score-low { background: rgba(129, 199, 132, 0.2); color: var(--success); }
+        .btn {
+            background: var(--accent);
+            color: #1a1a1a;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn:hover { background: var(--accent-hover); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-secondary {
+            background: transparent;
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+        .btn-secondary:hover { background: var(--border); }
+        .actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+            justify-content: flex-end;
+        }
+        .progress {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+        .progress.active { display: block; }
+        .spinner {
+            border: 3px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            width: 2rem;
+            height: 2rem;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 0.5rem;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .empty {
+            color: var(--text-muted);
+            text-align: center;
+            padding: 2rem;
+        }
+        .info-box {
+            background: rgba(124, 179, 66, 0.08);
+            border: 1px solid var(--accent);
+            border-radius: 6px;
+            padding: 0.75rem 1rem;
+            margin-bottom: 1rem;
+            font-size: 0.85rem;
+        }
+        .result {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+        .result.active { display: block; }
+        .result .success-icon { font-size: 3rem; margin-bottom: 1rem; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <span class="icon">🦡</span>
+        <h1>DataDachs – Regeln reviewen</h1>
+    </div>
+
+    <div class="card">
+        <div class="info-box">
+            <strong>Job:</strong> <span id="jobName"></span> &nbsp;|&nbsp;
+            <strong>Typ:</strong> <span id="jobType"></span>
+        </div>
+        <div id="tables"></div>
+    </div>
+
+    <div class="card actions">
+        <button class="btn btn-secondary" onclick="history.back()">Zurück</button>
+        <button class="btn" id="processBtn">Pseudonymisierung starten</button>
+    </div>
+
+    <div class="progress" id="progress">
+        <div class="spinner"></div>
+        <p>Datei wird pseudonymisiert...</p>
+    </div>
+
+    <div class="result" id="result">
+        <div class="success-icon">✅</div>
+        <h2>Pseudonymisierung abgeschlossen</h2>
+        <p style="margin: 1rem 0; color: var(--text-muted);">
+            Alle erkannten personenbezogenen Daten wurden ersetzt.<br>
+            Die Datei enthält keine echten Daten mehr.
+        </p>
+        <a class="btn" id="downloadBtn" href="#">Download</a>
+    </div>
+
+    <script>
+        const jobData = {{JOB_DATA}};
+        const jobId = '{{JOB_ID}}';
+
+        document.getElementById('jobName').textContent = jobData.original_name;
+        document.getElementById('jobType').textContent = jobData.file_type.toUpperCase();
+
+        const tablesDiv = document.getElementById('tables');
+        const detected = jobData.detected_rules || {};
+
+        if (jobData.file_type === 'sql') {
+            renderSqlReview(detected);
+        } else if (jobData.file_type === 'csv') {
+            renderCsvReview(detected);
+        } else if (jobData.file_type === 'json') {
+            renderJsonReview(detected);
+        } else if (jobData.file_type === 'txt') {
+            renderTxtReview(detected);
+        }
+
+        function renderSqlReview(detected) {
+            for (const [tableName, tableData] of Object.entries(detected)) {
+                const section = document.createElement('div');
+                section.innerHTML = `<h2>Tabelle: ${tableName}</h2>`;
+                const table = document.createElement('table');
+                table.innerHTML = `
+                    <thead>
+                        <tr>
+                            <th>Spalte</th>
+                            <th>Erkannt als</th>
+                            <th>Methode</th>
+                            <th>Score</th>
+                            <th>Aktion</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                `;
+                const tbody = table.querySelector('tbody');
+                for (const [col, info] of Object.entries(tableData.detected || {})) {
+                    const row = document.createElement('tr');
+                    const scoreClass = info.score >= 9 ? 'score-high' : info.score >= 6 ? 'score-med' : 'score-low';
+                    row.innerHTML = `
+                        <td><code>${col}</code></td>
+                        <td>${info.type || '-'}</td>
+                        <td>${info.method || '-'}</td>
+                        <td><span class="score ${scoreClass}">${info.score || 0}</span></td>
+                        <td>
+                            <select data-column="${col}" data-table="${tableName}">
+                                <option value="pseudonymize" ${info.action === 'pseudonymize' ? 'selected' : ''}>Pseudonymisieren</option>
+                                <option value="keep" ${info.action === 'keep' ? 'selected' : ''}>Unverändert lassen</option>
+                            </select>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                }
+                section.appendChild(table);
+                tablesDiv.appendChild(section);
+            }
+        }
+
+        function renderCsvReview(detected) {
+            const section = document.createElement('div');
+            section.innerHTML = `<h2>CSV-Spalten</h2>`;
+            const table = document.createElement('table');
+            table.innerHTML = `
+                <thead>
+                    <tr>
+                        <th>Spalte</th>
+                        <th>Erkannt als</th>
+                        <th>Methode</th>
+                        <th>Score</th>
+                        <th>Aktion</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            `;
+            const tbody = table.querySelector('tbody');
+            for (const [col, info] of Object.entries(detected.detected || {})) {
+                const row = document.createElement('tr');
+                const scoreClass = info.score >= 9 ? 'score-high' : info.score >= 6 ? 'score-med' : 'score-low';
+                row.innerHTML = `
+                    <td><code>${col}</code></td>
+                    <td>${info.type || '-'}</td>
+                    <td>${info.method || '-'}</td>
+                    <td><span class="score ${scoreClass}">${info.score || 0}</span></td>
+                    <td>
+                        <select data-column="${col}">
+                            <option value="pseudonymize" ${info.action === 'pseudonymize' ? 'selected' : ''}>Pseudonymisieren</option>
+                            <option value="keep" ${info.action === 'keep' ? 'selected' : ''}>Unverändert lassen</option>
+                        </select>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            }
+            section.appendChild(table);
+            tablesDiv.appendChild(section);
+        }
+
+        function renderJsonReview(detected) {
+            const section = document.createElement('div');
+            section.innerHTML = `<h2>JSON-Keys</h2>`;
+            const table = document.createElement('table');
+            table.innerHTML = `
+                <thead>
+                    <tr>
+                        <th>Key</th>
+                        <th>Erkannt als</th>
+                        <th>Methode</th>
+                        <th>Score</th>
+                        <th>Aktion</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            `;
+            const tbody = table.querySelector('tbody');
+            for (const [key, info] of Object.entries(detected.detected || {})) {
+                const row = document.createElement('tr');
+                const scoreClass = info.score >= 9 ? 'score-high' : info.score >= 6 ? 'score-med' : 'score-low';
+                row.innerHTML = `
+                    <td><code>${key}</code></td>
+                    <td>${info.type || '-'}</td>
+                    <td>${info.method || '-'}</td>
+                    <td><span class="score ${scoreClass}">${info.score || 0}</span></td>
+                    <td>
+                        <select data-column="${key}">
+                            <option value="pseudonymize" ${info.action === 'pseudonymize' ? 'selected' : ''}>Pseudonymisieren</option>
+                            <option value="keep" ${info.action === 'keep' ? 'selected' : ''}>Unverändert lassen</option>
+                        </select>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            }
+            section.appendChild(table);
+            tablesDiv.appendChild(section);
+        }
+
+        function renderTxtReview(detected) {
+            const section = document.createElement('div');
+            section.innerHTML = `<h2>Erkannte Muster</h2>`;
+            if (!detected.findings || detected.findings.length === 0) {
+                section.innerHTML += `<div class="empty">Keine PII-Muster erkannt</div>`;
+            } else {
+                const table = document.createElement('table');
+                table.innerHTML = `
+                    <thead>
+                        <tr>
+                            <th>Typ</th>
+                            <th>Wert (gekürzt)</th>
+                            <th>Score</th>
+                            <th>Aktion</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                `;
+                const tbody = table.querySelector('tbody');
+                const seen = new Set();
+                for (const finding of detected.findings) {
+                    const key = finding.type + '|' + finding.value;
+                    if (seen.has(key)) continue;
+                    seen.add(key);
+                    const row = document.createElement('tr');
+                    const display = finding.value.length > 30 ? finding.value.substring(0, 30) + '...' : finding.value;
+                    const scoreClass = finding.score >= 9 ? 'score-high' : finding.score >= 6 ? 'score-med' : 'score-low';
+                    row.innerHTML = `
+                        <td>${finding.type}</td>
+                        <td><code>${display}</code></td>
+                        <td><span class="score ${scoreClass}">${finding.score}</span></td>
+                        <td>
+                            <select data-type="${finding.type}">
+                                <option value="pseudonymize" selected>Pseudonymisieren</option>
+                                <option value="keep">Unverändert lassen</option>
+                            </select>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                }
+                section.appendChild(table);
+            }
+            tablesDiv.appendChild(section);
+        }
+
+        document.getElementById('processBtn').addEventListener('click', async () => {
+            const rules = {};
+            document.querySelectorAll('select[data-column]').forEach(sel => {
+                const col = sel.dataset.column;
+                const table = sel.dataset.table || 'default';
+                if (!rules[table]) rules[table] = {};
+                rules[table][col] = {
+                    action: sel.value,
+                    type: sel.closest('tr').querySelector('td:nth-child(2)').textContent,
+                    faker_method: sel.closest('tr').querySelector('td:nth-child(3)').textContent,
+                };
+            });
+
+            document.querySelectorAll('select[data-type]').forEach(sel => {
+                const type = sel.dataset.type;
+                rules[type] = { action: sel.value };
+            });
+
+            document.getElementById('progress').classList.add('active');
+            document.querySelector('.actions').style.display = 'none';
+
+            try {
+                const res = await fetch(`/process/${jobId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ rules })
+                });
+                const data = await res.json();
+                if (data.error) {
+                    alert('Fehler: ' + data.error);
+                    document.getElementById('progress').classList.remove('active');
+                    document.querySelector('.actions').style.display = 'flex';
+                } else {
+                    document.getElementById('progress').classList.remove('active');
+                    document.getElementById('result').classList.add('active');
+                    document.getElementById('downloadBtn').href = data.download_url;
+                }
+            } catch (e) {
+                alert('Fehler: ' + e.message);
+                document.getElementById('progress').classList.remove('active');
+                document.querySelector('.actions').style.display = 'flex';
+            }
+        });
+    </script>
+</body>
+</html>

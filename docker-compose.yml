@@ -1,0 +1,43 @@
+# DataDachs – Portainer Stack (ARM64 / Raspberry Pi 5)
+# Stack-Name: datadachs
+
+services:
+  datadachs:
+    container_name: datadachs
+    image: ghcr.io/mueller-lukas/datadachs:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+      platforms:
+        - linux/arm64
+    restart: unless-stopped
+    environment:
+      - APP_ENV=${APP_ENV:-production}
+      - APP_DEBUG=${APP_DEBUG:-false}
+      - APP_NAME=DataDachs
+      - MAX_UPLOAD_SIZE=${MAX_UPLOAD_SIZE:-50M}
+      - JOB_TTL_MINUTES=${JOB_TTL_MINUTES:-60}
+      - LOG_LEVEL=${LOG_LEVEL:-warning}
+    volumes:
+      - datadachs-storage:/var/www/datadachs/storage
+    networks:
+      - datadachs
+      - proxy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 5s
+      start_period: 10s
+      retries: 3
+    labels:
+      - "traefik.enable=false"
+
+volumes:
+  datadachs-storage:
+    driver: local
+
+networks:
+  datadachs:
+    driver: bridge
+  proxy:
+    external: true

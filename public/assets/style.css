@@ -1,0 +1,13 @@
+/* DataDachs – Gemeinsame Styles */
+:root {
+    --bg: #1a1a1a;
+    --bg-card: #252525;
+    --text: #e8e8e8;
+    --text-muted: #888;
+    --accent: #7cb342;
+    --accent-hover: #8bc34a;
+    --border: #333;
+    --danger: #e57373;
+    --warning: #ffb74d;
+    --success: #81c784;
+}
