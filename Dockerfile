@@ -17,7 +17,8 @@ RUN apk add --no-cache \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j$(nproc) pdo_sqlite gd \
     && docker-php-ext-install zip \
-    && apk del --no-cache libpng-dev libjpeg-turbo-dev freetype-dev zlib-dev libzip-dev sqlite-dev
+    && apk del --no-cache libpng-dev libjpeg-turbo-dev freetype-dev zlib-dev libzip-dev sqlite-dev \
+    && apk add --no-cache libpng libjpeg-turbo freetype zlib libzip
 
 # Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
