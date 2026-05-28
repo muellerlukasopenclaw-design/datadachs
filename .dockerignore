@@ -1,8 +1,53 @@
+# DataDachs – Docker Ignore
+
+# Git
 .git
+.gitignore
+.gitattributes
+
+# CI/CD
+.github
+
+# Dokumentation
+*.md
+LICENSE
+
+# Tests
+tests/
+phpunit.xml
+.phpunit.cache
+
+# Entwicklungs-Dateien
 .env
 .env.local
+.env.*.local
 storage/
-node_modules/
-vendor/
-*.log
+!storage/.gitkeep
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS
 .DS_Store
+Thumbs.db
+
+# Composer (wird im Container installiert)
+vendor/
+composer.lock
+
+# Node (falls vorhanden)
+node_modules/
+package-lock.json
+yarn.lock
+
+# Logs
+*.log
+logs/
+
+# Temporäre Dateien
+tmp/
+temp/
+*.tmp

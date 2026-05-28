@@ -8,7 +8,13 @@ RUN apk add --no-cache \
     sqlite \
     libzip \
     unzip \
-    && docker-php-ext-install pdo_sqlite
+    libpng \
+    libjpeg-turbo \
+    freetype \
+    zlib \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install -j$(nproc) pdo_sqlite gd \
+    && docker-php-ext-install zip
 
 # Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
@@ -40,6 +46,14 @@ RUN addgroup -g 1000 datadachs \
 
 # Temporäre Verzeichnisse beschreibbar, Rest read-only vorbereitet
 VOLUME ["/var/www/datadachs/storage"]
+
+# Security: read-only root fs, drop capabilities
+# (wird vom Container-Runtime enforced)
+
+# Labels für SBOM/Provenance
+LABEL org.opencontainers.image.title="DataDachs"
+LABEL org.opencontainers.image.description="Lokale Pseudonymisierung für Testdaten"
+LABEL org.opencontainers.image.source="https://github.com/muellerlukasopenclaw-design/datadachs"
 
 USER datadachs
 
