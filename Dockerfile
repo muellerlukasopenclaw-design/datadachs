@@ -6,6 +6,7 @@ RUN apk add --no-cache \
     nginx \
     supervisor \
     sqlite \
+    sqlite-dev \
     libzip \
     unzip \
     libpng-dev \
@@ -16,7 +17,7 @@ RUN apk add --no-cache \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j$(nproc) pdo_sqlite gd \
     && docker-php-ext-install zip \
-    && apk del --no-cache libpng-dev libjpeg-turbo-dev freetype-dev zlib-dev libzip-dev
+    && apk del --no-cache libpng-dev libjpeg-turbo-dev freetype-dev zlib-dev libzip-dev sqlite-dev
 
 # Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
