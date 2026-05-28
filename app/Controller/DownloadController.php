@@ -19,8 +19,9 @@ class DownloadController
         $this->jobManager = $jobManager;
     }
 
-    public function download(Request $request, Response $response, string $jobId): Response
+    public function download(Request $request, Response $response, array $args): Response
     {
+        $jobId = $args['jobId'];
         $job = $this->jobManager->getJob($jobId);
 
         if (!$job || empty($job['result_path']) || !file_exists($job['result_path'])) {

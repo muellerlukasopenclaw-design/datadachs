@@ -26,12 +26,17 @@ $builder->addDefinitions([
         return new \DataDachs\Service\FakerEngine($_ENV['DETERMINISTIC_SEED'] ?? null);
     },
     // Controller
-    \DataDachs\Controller\UploadController::class => \DI\autowire(),
-    \DataDachs\Controller\ReviewController::class => \DI\autowire(),
-    \DataDachs\Controller\ProcessController::class => \DI\autowire(),
-    \DataDachs\Controller\DownloadController::class => \DI\autowire(),
-    \DataDachs\Controller\CleanupController::class => \DI\autowire(),
-    \DataDachs\Controller\HealthController::class => \DI\autowire(),
+    \DataDachs\Controller\UploadController::class => \DI\create(\DataDachs\Controller\UploadController::class)
+        ->constructor(\DI\get(\DataDachs\Service\JobManager::class), \DI\get(\DataDachs\Service\PiiDetector::class), \DI\get(\DataDachs\Service\FakerEngine::class), \DI\get('config')),
+    \DataDachs\Controller\ReviewController::class => \DI\create(\DataDachs\Controller\ReviewController::class)
+        ->constructor(\DI\get(\DataDachs\Service\JobManager::class)),
+    \DataDachs\Controller\ProcessController::class => \DI\create(\DataDachs\Controller\ProcessController::class)
+        ->constructor(\DI\get(\DataDachs\Service\JobManager::class), \DI\get(\DataDachs\Service\PiiDetector::class), \DI\get(\DataDachs\Service\FakerEngine::class)),
+    \DataDachs\Controller\DownloadController::class => \DI\create(\DataDachs\Controller\DownloadController::class)
+        ->constructor(\DI\get(\DataDachs\Service\JobManager::class)),
+    \DataDachs\Controller\CleanupController::class => \DI\create(\DataDachs\Controller\CleanupController::class)
+        ->constructor(\DI\get(\DataDachs\Service\JobManager::class)),
+    \DataDachs\Controller\HealthController::class => \DI\create(\DataDachs\Controller\HealthController::class),
 ]);
 
 $container = $builder->build();
@@ -39,7 +44,7 @@ AppFactory::setContainer($container);
 $app = AppFactory::create();
 
 // Error Middleware
-$app->addErrorMiddleware($config['debug'], false, false);
+$app->addErrorMiddleware(true, true, true);
 
 // Body Parsing
 $app->addBodyParsingMiddleware();

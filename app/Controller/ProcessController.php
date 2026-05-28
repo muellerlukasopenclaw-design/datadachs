@@ -29,8 +29,9 @@ class ProcessController
         $this->faker = $faker;
     }
 
-    public function process(Request $request, Response $response, string $jobId): Response
+    public function process(Request $request, Response $response, array $args): Response
     {
+        $jobId = $args['jobId'];
         $body = $request->getParsedBody();
         $confirmedRules = $body['rules'] ?? [];
 

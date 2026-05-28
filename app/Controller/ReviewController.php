@@ -19,8 +19,9 @@ class ReviewController
         $this->jobManager = $jobManager;
     }
 
-    public function showReview(Request $request, Response $response, string $jobId): Response
+    public function showReview(Request $request, Response $response, array $args): Response
     {
+        $jobId = $args['jobId'];
         $job = $this->jobManager->getJob($jobId);
 
         if (!$job) {

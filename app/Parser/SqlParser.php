@@ -29,20 +29,32 @@ class SqlParser
     {
         $tables = [];
         $lines = explode("\n", $sql);
+        $buffer = '';
         
         foreach ($lines as $line) {
             $line = trim($line);
-            if (stripos($line, 'INSERT INTO') === 0) {
-                $tableInfo = $this->parseInsertLine($line);
-                if ($tableInfo) {
-                    $tables[$tableInfo['table']] = [
-                        'columns' => $tableInfo['columns'],
-                        'detected' => $this->detector->detectColumns(
-                            $tableInfo['table'],
-                            $tableInfo['columns']
-                        ),
-                    ];
+            // Kommentare und Leerzeilen überspringen
+            if (empty($line) || strpos($line, '--') === 0 || strpos($line, '/*') === 0) {
+                continue;
+            }
+            
+            $buffer .= ' ' . $line;
+            
+            // Vollständiges Statement erkennen (endet mit ;)
+            if (substr($line, -1) === ';') {
+                if (stripos($buffer, 'INSERT INTO') !== false) {
+                    $tableInfo = $this->parseInsertLine($buffer);
+                    if ($tableInfo) {
+                        $tables[$tableInfo['table']] = [
+                            'columns' => $tableInfo['columns'],
+                            'detected' => $this->detector->detectColumns(
+                                $tableInfo['table'],
+                                $tableInfo['columns']
+                            ),
+                        ];
+                    }
                 }
+                $buffer = '';
             }
         }
         
@@ -57,14 +69,32 @@ class SqlParser
         $this->columnRules = $confirmedRules;
         $lines = explode("\n", $sql);
         $result = [];
+        $buffer = '';
         
         foreach ($lines as $line) {
             $line = trim($line);
-            if (stripos($line, 'INSERT INTO') === 0) {
-                $result[] = $this->processInsertLine($line);
-            } else {
+            // Kommentare und Leerzeilen beibehalten
+            if (empty($line) || strpos($line, '--') === 0) {
                 $result[] = $line;
+                continue;
             }
+            
+            $buffer .= ' ' . $line;
+            
+            // Vollständiges Statement erkennen (endet mit ;)
+            if (substr($line, -1) === ';') {
+                if (stripos($buffer, 'INSERT INTO') !== false) {
+                    $result[] = $this->processInsertLine($buffer);
+                } else {
+                    $result[] = trim($buffer);
+                }
+                $buffer = '';
+            }
+        }
+        
+        // Restlicher Buffer (falls kein Semikolon am Ende)
+        if (!empty($buffer)) {
+            $result[] = trim($buffer);
         }
         
         return implode("\n", $result);
@@ -110,6 +140,9 @@ class SqlParser
         $this->currentTable = $tableInfo['table'];
         $columns = $tableInfo['columns'];
         
+        // Regeln für diese Tabelle holen
+        $tableRules = $this->columnRules[$tableInfo['table']] ?? [];
+        
         // VALUES-Teil extrahieren
         if (!preg_match('/VALUES\s+(.+);?$/i', $line, $valMatch)) {
             return $line;
@@ -122,7 +155,7 @@ class SqlParser
         $newRows = [];
         
         foreach ($rows as $row) {
-            $newRows[] = $this->processValueRow($row, $columns);
+            $newRows[] = $this->processValueRow($row, $columns, $tableRules);
         }
         
         // Zeile rekonstruieren
@@ -168,7 +201,7 @@ class SqlParser
     /**
      * Verarbeitet eine einzelne Werte-Gruppe (row)
      */
-    private function processValueRow(string $row, array $columns): string
+    private function processValueRow(string $row, array $columns, array $tableRules): string
     {
         // Klammern entfernen
         $inner = trim($row, '()');
@@ -179,7 +212,7 @@ class SqlParser
         
         foreach ($values as $index => $value) {
             $column = $columns[$index] ?? null;
-            $newValues[] = $this->processValue($value, $column);
+            $newValues[] = $this->processValue($value, $column, $tableRules);
         }
         
         return '(' . implode(', ', $newValues) . ')';
@@ -243,7 +276,7 @@ class SqlParser
     /**
      * Verarbeitet einen einzelnen Wert (pseudonymisieren oder beibehalten)
      */
-    private function processValue(string $value, ?string $column): string
+    private function processValue(string $value, ?string $column, array $tableRules): string
     {
         // NULL, Zahlen, Funktionen beibehalten
         if (strtoupper($value) === 'NULL') {
@@ -255,9 +288,9 @@ class SqlParser
         }
         
         // Prüfen ob Spalte pseudonymisiert werden soll
-        if ($column && isset($this->columnRules[$column])) {
-            $rule = $this->columnRules[$column];
-            if ($rule['action'] === 'pseudonymize' && $rule['faker_method']) {
+        if ($column && isset($tableRules[$column])) {
+            $rule = $tableRules[$column];
+            if ($rule['action'] === 'pseudonymize' && isset($rule['type'])) {
                 $unquoted = $this->unquote($value);
                 $fake = $this->faker->fake($rule['type'], $unquoted);
                 return $this->quote($fake, $value);
