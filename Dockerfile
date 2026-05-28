@@ -28,7 +28,7 @@ COPY docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 COPY docker/php-pool.conf /usr/local/etc/php-fpm.d/www.conf
 
 # App-Code (zuerst nur composer.json für Layer-Caching)
-COPY composer.json composer.lock ./
+COPY composer.json ./
 RUN composer install --no-dev --optimize-autoloader --no-interaction
 
 # Restlicher Code
