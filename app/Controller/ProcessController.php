@@ -14,6 +14,9 @@ use DataDachs\Parser\SqlParser;
 use DataDachs\Parser\CsvParser;
 use DataDachs\Parser\JsonParser;
 use DataDachs\Parser\TxtParser;
+use DataDachs\Parser\DocxParser;
+use DataDachs\Parser\XlsxParser;
+use DataDachs\Parser\PdfParser;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 
@@ -44,12 +47,18 @@ class ProcessController
         }
 
         try {
-            $content = file_get_contents($job['file_path']);
-            $result = $this->pseudonymizeContent($content, $job['file_type'], $confirmedRules);
+            $result = $this->pseudonymizeFile($job['file_path'], $job['file_type'], $confirmedRules);
 
             if ($result !== null) {
                 $resultPath = $this->jobManager->generateResultPath($job['original_name']);
-                file_put_contents($resultPath, $result);
+                
+                // Bei DOCX/XLSX/PDF ist $result ein Pfad zur temporären Datei
+                if (in_array($job['file_type'], ['docx', 'xlsx', 'pdf'])) {
+                    rename($result, $resultPath);
+                } else {
+                    file_put_contents($resultPath, $result);
+                }
+                
                 $this->jobManager->setResult($jobId, $resultPath);
                 $this->jobManager->setConfirmedRules($jobId, $confirmedRules);
 
@@ -69,13 +78,16 @@ class ProcessController
         return $this->jsonResponse($response, ['error' => 'Unbekannter Dateityp'], 400);
     }
 
-    private function pseudonymizeContent(string $content, string $type, array $rules): ?string
+    private function pseudonymizeFile(string $filePath, string $type, array $rules): ?string
     {
         return match ($type) {
-            'sql' => (new SqlParser($this->detector, $this->faker))->pseudonymize($content, $rules),
-            'csv' => (new CsvParser($this->detector, $this->faker))->pseudonymize($content, $rules),
-            'json' => (new JsonParser($this->detector, $this->faker))->pseudonymize($content, $rules),
-            'txt' => (new TxtParser($this->faker))->pseudonymize($content, $rules),
+            'sql' => (new SqlParser($this->detector, $this->faker))->pseudonymize(file_get_contents($filePath), $rules),
+            'csv' => (new CsvParser($this->detector, $this->faker))->pseudonymize(file_get_contents($filePath), $rules),
+            'json' => (new JsonParser($this->detector, $this->faker))->pseudonymize(file_get_contents($filePath), $rules),
+            'txt' => (new TxtParser($this->faker))->pseudonymize(file_get_contents($filePath), $rules),
+            'docx' => (new DocxParser($this->detector, $this->faker))->pseudonymize($filePath, $rules),
+            'xlsx' => (new XlsxParser($this->detector, $this->faker))->pseudonymize($filePath, $rules),
+            'pdf' => (new PdfParser($this->detector, $this->faker))->pseudonymize($filePath, $rules),
             default => null,
         };
     }

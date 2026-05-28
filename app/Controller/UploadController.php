@@ -46,7 +46,12 @@ class UploadController
         $originalName = $uploadedFile->getClientFilename();
         $extension = strtolower(pathinfo($originalName, PATHINFO_EXTENSION));
 
-        $allowed = $this->config['upload']['allowed_extensions'] ?? ['sql', 'csv', 'json', 'txt'];
+        $allowed = $this->config['upload']['allowed_extensions'] ?? ['sql', 'csv', 'json', 'txt', 'docx', 'xlsx', 'pdf'];
+        
+        // Prüfen ob DOCX/XLSX verfügbar sind
+        if (!class_exists('ZipArchive')) {
+            $allowed = array_diff($allowed, ['docx', 'xlsx']);
+        }
         if (!in_array($extension, $allowed)) {
             return $this->jsonResponse($response, ['error' => 'Dateityp nicht unterstützt'], 400);
         }
@@ -59,7 +64,7 @@ class UploadController
         // Analyse
         try {
             $content = file_get_contents($filePath);
-            $analysis = $this->analyzeContent($content, $extension);
+            $analysis = $this->analyzeContent($content, $extension, $filePath);
 
             if ($analysis) {
                 $this->jobManager->setDetectedRules($jobId, $analysis);
@@ -82,13 +87,16 @@ class UploadController
         return $this->jsonResponse($response, $responseData);
     }
 
-    private function analyzeContent(string $content, string $extension): ?array
+    private function analyzeContent(string $content, string $extension, ?string $filePath = null): ?array
     {
         return match ($extension) {
             'sql' => (new SqlParser($this->detector, $this->faker))->analyze($content),
             'csv' => (new CsvParser($this->detector, $this->faker))->analyze($content),
             'json' => (new JsonParser($this->detector, $this->faker))->analyze($content),
             'txt' => (new TxtParser($this->faker))->analyze($content),
+            'docx' => $filePath ? (new DocxParser($this->detector, $this->faker))->analyze($filePath) : null,
+            'xlsx' => $filePath ? (new XlsxParser($this->detector, $this->faker))->analyze($filePath) : null,
+            'pdf' => $filePath ? (new PdfParser($this->detector, $this->faker))->analyze($filePath) : null,
             default => null,
         };
     }

@@ -6,10 +6,13 @@
     "require": {
         "php": "^8.2",
         "fakerphp/faker": "^1.23",
-        "slim/slim": "^4.14",
-        "slim/psr7": "^1.7",
-        "php-di/php-di": "^7.0",
+        "maennchen/zipstream-php": "^3.2",
         "monolog/monolog": "^3.5",
+        "php-di/php-di": "^7.0",
+        "phpoffice/phpspreadsheet": "^5.7",
+        "phpoffice/phpword": "^1.4",
+        "slim/psr7": "^1.7",
+        "slim/slim": "^4.14",
         "vlucas/phpdotenv": "^5.6"
     },
     "require-dev": {

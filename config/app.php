@@ -10,7 +10,7 @@ return [
     
     'upload' => [
         'max_size_mb' => (int) ($_ENV['MAX_FILE_SIZE_MB'] ?? 50),
-        'allowed_extensions' => ['sql', 'csv', 'json', 'txt', 'zip', 'gz'],
+        'allowed_extensions' => ['sql', 'csv', 'json', 'txt', 'zip', 'gz', 'docx', 'xlsx', 'pdf'],
         'temp_dir' => __DIR__ . '/../storage/uploads',
     ],
     
