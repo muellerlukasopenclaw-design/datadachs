@@ -57,6 +57,8 @@ $builder->addDefinitions([
     \DataDachs\Controller\CleanupController::class => \DI\create(\DataDachs\Controller\CleanupController::class)
         ->constructor(\DI\get(\DataDachs\Service\JobManager::class)),
     \DataDachs\Controller\HealthController::class => \DI\create(\DataDachs\Controller\HealthController::class),
+    \DataDachs\Controller\DbController::class => \DI\create(\DataDachs\Controller\DbController::class)
+        ->constructor(\DI\get('config'), \DI\get(\DataDachs\Service\PreserveRuleService::class)),
 ]);
 
 $container = $builder->build();
@@ -99,6 +101,20 @@ $app->post('/cleanup', \DataDachs\Controller\CleanupController::class . ':cleanu
 // Hilfe
 $app->get('/help', function ($request, $response) {
     $html = file_get_contents(__DIR__ . '/../app/View/help.html');
+    $response->getBody()->write($html);
+    return $response->withHeader('Content-Type', 'text/html');
+});
+
+// === DATENBANK-MODUS ===
+$app->post('/db/connect', \DataDachs\Controller\DbController::class . ':connect');
+$app->post('/db/analyze', \DataDachs\Controller\DbController::class . ':analyze');
+$app->post('/db/pseudonymize', \DataDachs\Controller\DbController::class . ':pseudonymize');
+$app->post('/db/export', \DataDachs\Controller\DbController::class . ':export');
+$app->post('/db/disconnect', \DataDachs\Controller\DbController::class . ':disconnect');
+
+// Datenbank-UI
+$app->get('/db', function ($request, $response) {
+    $html = file_get_contents(__DIR__ . '/../app/View/db.html');
     $response->getBody()->write($html);
     return $response->withHeader('Content-Type', 'text/html');
 });

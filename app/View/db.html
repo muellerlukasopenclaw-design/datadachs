@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DataDachs – Datenbank-Modus</title>
+    <style>
+        :root {
+            --bg: #0d1117;
+            --bg-card: #161b22;
+            --border: #30363d;
+            --text: #c9d1d9;
+            --text-muted: #8b949e;
+            --accent: #58a6ff;
+            --accent-hover: #79b8ff;
+            --success: #238636;
+            --success-hover: #2ea043;
+            --warning: #d29922;
+            --danger: #da3633;
+            --radius: 8px;
+            --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--font);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .logo {
+            font-size: 2.2rem;
+        }
+        .subtitle {
+            color: var(--text-muted);
+            margin-bottom: 32px;
+        }
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+        .card h2 {
+            font-size: 1.1rem;
+            margin-bottom: 16px;
+            color: var(--accent);
+        }
+        .form-group {
+            margin-bottom: 16px;
+        }
+        label {
+            display: block;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 10px 14px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            color: var(--text);
+            font-size: 0.95rem;
+            font-family: var(--font);
+        }
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: var(--radius);
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-primary {
+            background: var(--success);
+            color: #fff;
+        }
+        .btn-primary:hover { background: var(--success-hover); }
+        .btn-secondary {
+            background: var(--bg);
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+        .btn-secondary:hover { background: var(--border); }
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .status {
+            padding: 12px 16px;
+            border-radius: var(--radius);
+            margin-bottom: 16px;
+            font-size: 0.9rem;
+        }
+        .status.success {
+            background: rgba(35, 134, 54, 0.15);
+            border: 1px solid var(--success);
+            color: #3fb950;
+        }
+        .status.error {
+            background: rgba(218, 54, 51, 0.15);
+            border: 1px solid var(--danger);
+            color: #f85149;
+        }
+        .status.info {
+            background: rgba(88, 166, 255, 0.1);
+            border: 1px solid var(--accent);
+            color: var(--accent);
+        }
+        .hidden { display: none; }
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        .table-list {
+            list-style: none;
+        }
+        .table-list li {
+            padding: 8px 12px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            margin-bottom: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .table-list li:hover {
+            background: var(--bg);
+        }
+        .badge {
+            font-size: 0.75rem;
+            padding: 2px 8px;
+            border-radius: 12px;
+            background: var(--accent);
+            color: #fff;
+        }
+        .badge.warning {
+            background: var(--warning);
+        }
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: var(--bg);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+        .progress-bar .fill {
+            height: 100%;
+            background: var(--success);
+            transition: width 0.3s;
+        }
+        .nav {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .nav a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+        .nav a:hover {
+            color: var(--text);
+        }
+        .nav a.active {
+            color: var(--accent);
+            font-weight: 500;
+        }
+        .driver-fields {
+            display: none;
+        }
+        .driver-fields.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="nav">
+            <a href="/">Datei-Modus</a>
+            <a href="/db" class="active">Datenbank-Modus</a>
+            <a href="/help">Hilfe</a>
+        </div>
+
+        <h1><span class="logo">🦡</span> DataDachs</h1>
+        <p class="subtitle">Datenbank-Modus – Direkt auf Datenbanken pseudonymisieren</p>
+
+        <!-- Schritt 1: Verbindung -->
+        <div class="card" id="connect-card">
+            <h2>🔌 Datenbank-Verbindung</h2>
+            <div id="connect-status"></div>
+            
+            <div class="form-group">
+                <label>Treiber</label>
+                <select id="driver" onchange="toggleDriverFields()">
+                    <option value="sqlite">SQLite (lokal)</option>
+                    <option value="mysql">MySQL</option>
+                    <option value="pgsql">PostgreSQL</option>
+                </select>
+            </div>
+            
+            <!-- SQLite -->
+            <div class="driver-fields active" id="fields-sqlite">
+                <div class="form-group">
+                    <label>Datenbank-Pfad</label>
+                    <input type="text" id="sqlite-path" value="storage/datadachs.db" placeholder="/pfad/zur/db.sqlite">
+                </div>
+            </div>
+            
+            <!-- MySQL / PostgreSQL -->
+            <div class="driver-fields" id="fields-mysql-pgsql">
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label>Host</label>
+                        <input type="text" id="db-host" value="localhost" placeholder="localhost">
+                    </div>
+                    <div class="form-group">
+                        <label>Port</label>
+                        <input type="number" id="db-port" value="3306" placeholder="3306">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Datenbank</label>
+                    <input type="text" id="db-name" placeholder="datenbank_name">
+                </div>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label>Benutzer</label>
+                        <input type="text" id="db-user" placeholder="root">
+                    </div>
+                    <div class="form-group">
+                        <label>Passwort</label>
+                        <input type="password" id="db-password" placeholder="••••••">
+                    </div>
+                </div>
+            </div>
+            
+            <button class="btn btn-primary" id="btn-connect" onclick="connect()">
+                Verbinden
+            </button>
+        </div>
+
+        <!-- Schritt 2: Tabellen-Analyse -->
+        <div class="card hidden" id="analyze-card">
+            <h2>🔍 Schema-Analyse</h2>
+            <div id="analyze-status"></div>
+            <div id="tables-list"></div>
+            <button class="btn btn-primary" id="btn-analyze" onclick="analyze()">
+                PII erkennen
+            </button>
+        </div>
+
+        <!-- Schritt 3: Review & Pseudonymisierung -->
+        <div class="card hidden" id="review-card">
+            <h2>✅ Review & Pseudonymisierung</h2>
+            <div id="review-status"></div>
+            <div id="review-content"></div>
+            <div class="form-group">
+                <label>Batch-Größe (Zeilen pro Durchlauf)</label>
+                <input type="number" id="batch-size" value="1000" min="100" max="10000">
+            </div>
+            <button class="btn btn-primary" id="btn-pseudonymize" onclick="pseudonymize()">
+                Pseudonymisierung starten
+            </button>
+            <button class="btn btn-secondary hidden" id="btn-export" onclick="exportSql()">
+                Als SQL exportieren
+            </button>
+        </div>
+
+        <!-- Ergebnis -->
+        <div class="card hidden" id="result-card">
+            <h2>📊 Ergebnis</h2>
+            <div id="result-content"></div>
+        </div>
+    </div>
+
+    <script>
+        let sessionId = null;
+        let analysisData = null;
+        let selectedRules = {};
+
+        function toggleDriverFields() {
+            const driver = document.getElementById('driver').value;
+            document.getElementById('fields-sqlite').classList.toggle('active', driver === 'sqlite');
+            document.getElementById('fields-mysql-pgsql').classList.toggle('active', driver !== 'sqlite');
+            
+            // Port anpassen
+            const port = document.getElementById('db-port');
+            if (driver === 'mysql') port.value = 3306;
+            if (driver === 'pgsql') port.value = 5432;
+        }
+
+        function showStatus(id, message, type = 'info') {
+            const el = document.getElementById(id);
+            el.className = 'status ' + type;
+            el.textContent = message;
+        }
+
+        function hideStatus(id) {
+            document.getElementById(id).className = 'hidden';
+        }
+
+        async function connect() {
+            const driver = document.getElementById('driver').value;
+            const body = { driver };
+            
+            if (driver === 'sqlite') {
+                body.path = document.getElementById('sqlite-path').value;
+            } else {
+                body.host = document.getElementById('db-host').value;
+                body.port = parseInt(document.getElementById('db-port').value);
+                body.database = document.getElementById('db-name').value;
+                body.user = document.getElementById('db-user').value;
+                body.password = document.getElementById('db-password').value;
+            }
+            
+            const btn = document.getElementById('btn-connect');
+            btn.disabled = true;
+            showStatus('connect-status', 'Verbindung wird hergestellt...', 'info');
+            
+            try {
+                const res = await fetch('/db/connect', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+                const data = await res.json();
+                
+                if (data.success) {
+                    sessionId = data.session_id;
+                    showStatus('connect-status', `✅ Verbunden! ${data.table_count} Tabellen gefunden.`, 'success');
+                    
+                    // Tabellen anzeigen
+                    const list = document.getElementById('tables-list');
+                    list.innerHTML = '<ul class="table-list">' + 
+                        data.tables.map(t => `<li><span>${t}</span></li>`).join('') + 
+                        '</ul>';
+                    
+                    document.getElementById('analyze-card').classList.remove('hidden');
+                } else {
+                    showStatus('connect-status', '❌ ' + data.error, 'error');
+                }
+            } catch (e) {
+                showStatus('connect-status', '❌ Fehler: ' + e.message, 'error');
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        async function analyze() {
+            const btn = document.getElementById('btn-analyze');
+            btn.disabled = true;
+            showStatus('analyze-status', 'PII wird erkannt...', 'info');
+            
+            try {
+                const res = await fetch('/db/analyze', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ session_id: sessionId })
+                });
+                const data = await res.json();
+                
+                if (data.success) {
+                    analysisData = data.analysis;
+                    showStatus('analyze-status', `✅ ${data.tables_with_pii} Tabellen mit PII erkannt.`, 'success');
+                    renderReview(data.analysis);
+                    document.getElementById('review-card').classList.remove('hidden');
+                } else {
+                    showStatus('analyze-status', '❌ ' + data.error, 'error');
+                }
+            } catch (e) {
+                showStatus('analyze-status', '❌ Fehler: ' + e.message, 'error');
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        function renderReview(analysis) {
+            const container = document.getElementById('review-content');
+            let html = '';
+            
+            for (const [table, info] of Object.entries(analysis)) {
+                html += `<div style="margin-bottom: 20px; border: 1px solid var(--border); border-radius: var(--radius); padding: 16px;">`;
+                html += `<h3 style="margin-bottom: 12px; color: var(--accent);">📋 ${table} <span class="badge">${info.row_count} Zeilen</span></h3>`;
+                html += `<table style="width: 100%; font-size: 0.9rem;">`;
+                html += `<thead><tr style="text-align: left; color: var(--text-muted);"><th>Spalte</th><th>Typ</th><th>Score</th><th>Aktion</th></tr></thead>`;
+                html += `<tbody>`;
+                
+                for (const [col, rule] of Object.entries(info.detected)) {
+                    const checked = rule.action === 'pseudonymize' ? 'checked' : '';
+                    html += `<tr>`;
+                    html += `<td style="padding: 6px 0;">${col}</td>`;
+                    html += `<td>${rule.type}</td>`;
+                    html += `<td><span class="badge">${rule.score}</span></td>`;
+                    html += `<td><label><input type="checkbox" checked data-table="${table}" data-column="${col}" data-type="${rule.type}" onchange="updateRule('${table}', '${col}', '${rule.type}', this.checked)"> Pseudonymisieren</label></td>`;
+                    html += `</tr>`;
+                    
+                    // Default: ausgewählt
+                    if (!selectedRules[table]) selectedRules[table] = {};
+                    selectedRules[table][col] = { action: 'pseudonymize', type: rule.type };
+                }
+                
+                html += `</tbody></table></div>`;
+            }
+            
+            container.innerHTML = html;
+        }
+
+        function updateRule(table, column, type, checked) {
+            if (!selectedRules[table]) selectedRules[table] = {};
+            selectedRules[table][column] = checked 
+                ? { action: 'pseudonymize', type: type }
+                : { action: 'keep', type: type };
+        }
+
+        async function pseudonymize() {
+            const btn = document.getElementById('btn-pseudonymize');
+            btn.disabled = true;
+            showStatus('review-status', 'Pseudonymisierung läuft...', 'info');
+            
+            try {
+                const res = await fetch('/db/pseudonymize', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        session_id: sessionId,
+                        rules: selectedRules,
+                        batch_size: parseInt(document.getElementById('batch-size').value)
+                    })
+                });
+                const data = await res.json();
+                
+                if (data.success) {
+                    showStatus('review-status', '✅ Pseudonymisierung abgeschlossen!', 'success');
+                    renderResult(data.summary, data.details);
+                    document.getElementById('btn-export').classList.remove('hidden');
+                } else {
+                    showStatus('review-status', '❌ ' + data.error, 'error');
+                }
+            } catch (e) {
+                showStatus('review-status', '❌ Fehler: ' + e.message, 'error');
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        function renderResult(summary, details) {
+            const container = document.getElementById('result-content');
+            let html = `<div style="margin-bottom: 16px;">`;
+            html += `<p><strong>Verarbeitet:</strong> ${summary.total_processed} Zeilen</p>`;
+            html += `<p><strong>Aktualisiert:</strong> ${summary.total_updated} Werte</p>`;
+            html += `<p><strong>Fehler:</strong> ${summary.total_errors}</p>`;
+            html += `</div>`;
+            
+            html += `<h3 style="margin-bottom: 12px;">Pro Tabelle</h3>`;
+            html += `<table style="width: 100%; font-size: 0.9rem;">`;
+            html += `<thead><tr style="text-align: left; color: var(--text-muted);"><th>Tabelle</th><th>Zeilen</th><th>Aktualisiert</th><th>Fehler</th></tr></thead>`;
+            html += `<tbody>`;
+            
+            for (const [table, info] of Object.entries(summary.tables)) {
+                html += `<tr>`;
+                html += `<td style="padding: 6px 0;">${table}</td>`;
+                html += `<td>${info.processed}</td>`;
+                html += `<td>${info.updated}</td>`;
+                html += `<td>${info.errors > 0 ? '<span class="badge warning">' + info.errors + '</span>' : '0'}</td>`;
+                html += `</tr>`;
+            }
+            
+            html += `</tbody></table>`;
+            container.innerHTML = html;
+            document.getElementById('result-card').classList.remove('hidden');
+        }
+
+        async function exportSql() {
+            const btn = document.getElementById('btn-export');
+            btn.disabled = true;
+            
+            try {
+                const res = await fetch('/db/export', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        session_id: sessionId,
+                        tables: selectedRules
+                    })
+                });
+                const data = await res.json();
+                
+                if (data.success) {
+                    showStatus('result-content', '✅ Export erstellt: ' + data.filename, 'success');
+                    // Download starten
+                    window.location.href = data.download_url;
+                } else {
+                    showStatus('result-content', '❌ ' + data.error, 'error');
+                }
+            } catch (e) {
+                showStatus('result-content', '❌ Fehler: ' + e.message, 'error');
+            } finally {
+                btn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>
