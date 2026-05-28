@@ -15,6 +15,10 @@ class FakerEngine
     private array $rules;
     private ?string $deterministicSeed;
     private ?PreserveRuleService $preserveService;
+    private array $valueCache = [];   // Cache für häufige Werte
+    private int $cacheSize = 10000;   // Max Cache-Einträge
+    private int $cacheHits = 0;
+    private int $cacheMisses = 0;
     
     public function __construct(?string $seed = null, ?PreserveRuleService $preserveService = null)
     {
@@ -32,6 +36,8 @@ class FakerEngine
      * Erzeugt einen Fake-Wert für einen gegebenen Typ
      * Gleiche Originalwerte liefern konsistent denselben Fake-Wert
      * Preserve-Regeln werden berücksichtigt (Ausnahmewerte nicht pseudonymisieren)
+     * 
+     * Optimiert mit LRU-Cache für große Datensätze
      */
     public function fake(string $type, string $original): string
     {
@@ -42,12 +48,34 @@ class FakerEngine
         
         $cacheKey = $type . '|' . $original;
         
+        // Schneller Pfad: Mapping-Cache (pro Job)
         if (isset($this->mapping[$cacheKey])) {
             return $this->mapping[$cacheKey];
         }
         
+        // Schneller Pfad: Value-Cache (LRU, begrenzt)
+        if (isset($this->valueCache[$cacheKey])) {
+            $this->cacheHits++;
+            return $this->valueCache[$cacheKey];
+        }
+        
+        $this->cacheMisses++;
+        
         $fake = $this->generate($type, $original);
+        
+        // In beide Caches speichern
         $this->mapping[$cacheKey] = $fake;
+        
+        // LRU-Cache: Alte Einträge entfernen wenn voll
+        if (count($this->valueCache) >= $this->cacheSize) {
+            // Entferne ~10% der ältesten Einträge
+            $toRemove = (int) ($this->cacheSize * 0.1);
+            $keys = array_keys($this->valueCache);
+            for ($i = 0; $i < $toRemove; $i++) {
+                unset($this->valueCache[$keys[$i]]);
+            }
+        }
+        $this->valueCache[$cacheKey] = $fake;
         
         return $fake;
     }
@@ -137,6 +165,25 @@ class FakerEngine
     public function clearMapping(): void
     {
         $this->mapping = [];
+        $this->valueCache = [];
+        $this->cacheHits = 0;
+        $this->cacheMisses = 0;
+    }
+    
+    /**
+     * Cache-Statistiken
+     */
+    public function getCacheStats(): array
+    {
+        $total = $this->cacheHits + $this->cacheMisses;
+        return [
+            'hits' => $this->cacheHits,
+            'misses' => $this->cacheMisses,
+            'total' => $total,
+            'hit_rate' => $total > 0 ? round($this->cacheHits / $total * 100, 2) : 0,
+            'mapping_size' => count($this->mapping),
+            'value_cache_size' => count($this->valueCache),
+        ];
     }
     
     /**

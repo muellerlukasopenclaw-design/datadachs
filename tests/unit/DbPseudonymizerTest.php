@@ -143,7 +143,8 @@ class DbPseudonymizerTest extends TestCase
         
         // NULL sollte erhalten bleiben
         $this->assertNull($rows[0]['firstname']);
-        $this->assertNotEquals('Test', $rows[0]['lastname']);
+        // lastname sollte geändert sein (Test → Fake)
+        $this->assertNotEquals('Test', $rows[0]['lastname'], 'lastname sollte pseudonymisiert sein');
     }
 
     public function testExportAsSql(): void
