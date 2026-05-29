@@ -64,9 +64,10 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          no-cache: true
+          # Cache deaktiviert: Bei Config-Änderungen (pii-rules.php etc.) muss
+          # das Image komplett neu gebaut werden, sonst bleibt der alte Layer
+          # im Cache und die Änderungen landen nicht im Image.
+          # Bei Bedarf wieder aktivieren: cache-from: type=gha, cache-to: type=gha,mode=max
           # Security-Scanning
           provenance: true
           sbom: true
