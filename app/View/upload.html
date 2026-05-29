@@ -45,9 +45,29 @@
         .logo-icon { font-size: 3rem; line-height: 1; }
         .tagline {
             color: var(--text-muted);
-            margin-bottom: 2rem;
-            font-size: 0.95rem;
+            margin-bottom: 1.5rem;
+            font-size: 1rem;
+            font-weight: 500;
         }
+        .usp-bar {
+            display: flex;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .usp-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            font-size: 0.85rem;
+        }
+        .usp-icon { font-size: 1.2rem; }
+        .usp-text { color: var(--text-muted); font-weight: 500; }
         .card {
             background: var(--bg-card);
             border: 1px solid var(--border);
@@ -159,7 +179,22 @@
             DataDachs
         </a>
     </div>
-    <div class="tagline">Pseudonymisierung für Testdaten – lokal, sicher, realistisch</div>
+    <div class="tagline">DSGVO-konforme Testdaten – ohne Datenverlust, ohne Cloud</div>
+
+    <div class="usp-bar">
+        <div class="usp-item">
+            <div class="usp-icon">🔒</div>
+            <div class="usp-text">100% lokal</div>
+        </div>
+        <div class="usp-item">
+            <div class="usp-icon">🇪🇺</div>
+            <div class="usp-text">DSGVO-konform</div>
+        </div>
+        <div class="usp-item">
+            <div class="usp-icon">🗑️</div>
+            <div class="usp-text">Auto-Cleanup</div>
+        </div>
+    </div>
 
     <div class="card">
         <div class="upload-zone" id="dropZone">
@@ -176,13 +211,13 @@
         <button class="btn" id="uploadBtn" disabled>Upload & Analyse starten</button>
 
         <div class="info">
-            <strong>Was passiert hier?</strong>
+            <strong>Warum DataDachs?</strong>
             <ul>
-                <li>Datei wird lokal analysiert (kein Upload in die Cloud)</li>
-                <li>PII-Kandidaten werden per Heuristik erkannt</li>
-                <li>Du bestätigst die Regeln vor der Pseudonymisierung</li>
-                <li>Realistische Ersatzdaten per Faker (de_DE)</li>
-                <li>Temporäre Daten werden automatisch gelöscht</li>
+                <li><strong>Kein Cloud-Upload</strong> – alles verarbeitet auf deinem Server</li>
+                <li><strong>DSGVO/GDPR-konform</strong> – keine Weitergabe personenbezogener Daten</li>
+                <li><strong>Realistische Testdaten</strong> – deutsche Namen, Adressen, E-Mails</li>
+                <li><strong>Kein Datenverlust</strong> – Struktur & Beziehungen bleiben erhalten</li>
+                <li><strong>Auto-Cleanup</strong> – temporäre Dateien werden automatisch gelöscht</li>
             </ul>
         </div>
     </div>
