@@ -120,6 +120,29 @@
             display: none;
         }
         .error.show { display: block; }
+        .footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--bg-card);
+            border-top: 1px solid var(--border);
+            padding: 0.75rem 1rem;
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            z-index: 100;
+        }
+        .footer a {
+            color: var(--text-muted);
+            text-decoration: underline;
+        }
+        .footer a:hover {
+            color: var(--accent);
+        }
+        body {
+            padding-bottom: 3rem;
+        }
     </style>
 </head>
 <body>
@@ -156,7 +179,7 @@
     </div>
 
     <div class="footer">
-        DataDachs v1.0.5 – Lokale Pseudonymisierung ohne Cloud
+        DataDachs v1.0.5 – Lokale Pseudonymisierung ohne Cloud{{FOOTER_LINKS}}
     </div>
 
     <script>

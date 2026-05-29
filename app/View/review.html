@@ -142,6 +142,41 @@
         }
         .result.active { display: block; }
         .result .success-icon { font-size: 3rem; margin-bottom: 1rem; }
+        .result-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 1.5rem;
+        }
+        .table-section {
+            margin-top: 2rem;
+        }
+        .table-section:first-child {
+            margin-top: 0;
+        }
+        .footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--bg-card);
+            border-top: 1px solid var(--border);
+            padding: 0.75rem 1rem;
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            z-index: 100;
+        }
+        .footer a {
+            color: var(--text-muted);
+            text-decoration: underline;
+        }
+        .footer a:hover {
+            color: var(--accent);
+        }
+        body {
+            padding-bottom: 3rem;
+        }
     </style>
 </head>
 <body>
@@ -175,7 +210,14 @@
             Alle erkannten personenbezogenen Daten wurden ersetzt.<br>
             Die Datei enthält keine echten Daten mehr.
         </p>
-        <a class="btn" id="downloadBtn" href="#">Download</a>
+        <div class="result-actions">
+            <a class="btn" id="downloadBtn" href="#">Download</a>
+            <a class="btn btn-secondary" href="/">Neuer Vorgang</a>
+        </div>
+    </div>
+
+    <div class="footer" id="footer">
+        DataDachs v1.0.5 – Lokale Pseudonymisierung ohne Cloud
     </div>
 
     <script>
@@ -201,6 +243,7 @@
         function renderSqlReview(detected) {
             for (const [tableName, tableData] of Object.entries(detected)) {
                 const section = document.createElement('div');
+                section.className = 'table-section';
                 section.innerHTML = `<h2>Tabelle: ${tableName}</h2>`;
                 const table = document.createElement('table');
                 table.innerHTML = `
@@ -240,6 +283,7 @@
 
         function renderCsvReview(detected) {
             const section = document.createElement('div');
+            section.className = 'table-section';
             section.innerHTML = `<h2>CSV-Spalten</h2>`;
             const table = document.createElement('table');
             table.innerHTML = `
@@ -278,6 +322,7 @@
 
         function renderJsonReview(detected) {
             const section = document.createElement('div');
+            section.className = 'table-section';
             section.innerHTML = `<h2>JSON-Keys</h2>`;
             const table = document.createElement('table');
             table.innerHTML = `
@@ -316,6 +361,7 @@
 
         function renderTxtReview(detected) {
             const section = document.createElement('div');
+            section.className = 'table-section';
             section.innerHTML = `<h2>Erkannte Muster</h2>`;
             if (!detected.findings || detected.findings.length === 0) {
                 section.innerHTML += `<div class="empty">Keine PII-Muster erkannt</div>`;

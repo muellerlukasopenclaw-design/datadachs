@@ -46,6 +46,7 @@ $builder->addDefinitions([
         return $service;
     },
     // Controller
+    \DataDachs\Controller\HomeController::class => \DI\create(\DataDachs\Controller\HomeController::class),
     \DataDachs\Controller\UploadController::class => \DI\create(\DataDachs\Controller\UploadController::class)
         ->constructor(\DI\get(\DataDachs\Service\JobManager::class), \DI\get(\DataDachs\Service\PiiDetector::class), \DI\get(\DataDachs\Service\FakerEngine::class), \DI\get('config'), \DI\get(\DataDachs\Service\PreserveRuleService::class)),
     \DataDachs\Controller\ReviewController::class => \DI\create(\DataDachs\Controller\ReviewController::class)
@@ -77,11 +78,7 @@ $app->addBodyParsingMiddleware();
 $app->get('/health', \DataDachs\Controller\HealthController::class . ':check');
 
 // Upload-Seite
-$app->get('/', function ($request, $response) {
-    $html = file_get_contents(__DIR__ . '/../app/View/upload.html');
-    $response->getBody()->write($html);
-    return $response->withHeader('Content-Type', 'text/html');
-});
+$app->get('/', \DataDachs\Controller\HomeController::class . ':showHome');
 
 // Upload-Handler
 $app->post('/upload', \DataDachs\Controller\UploadController::class . ':handleUpload');

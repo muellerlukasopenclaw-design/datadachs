@@ -1,37 +1,19 @@
 <?php
 /**
- * DataDachs – Review Controller
- * Zeigt erkannte Regeln zur Bestätigung an
+ * DataDachs – Home Controller
+ * Rendert die Startseite mit Footer-Links
  */
 
 namespace DataDachs\Controller;
 
-use DataDachs\Service\JobManager;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 
-class ReviewController
+class HomeController
 {
-    private JobManager $jobManager;
-
-    public function __construct(JobManager $jobManager)
+    public function showHome(Request $request, Response $response): Response
     {
-        $this->jobManager = $jobManager;
-    }
-
-    public function showReview(Request $request, Response $response, array $args): Response
-    {
-        $jobId = $args['jobId'];
-        $job = $this->jobManager->getJob($jobId);
-
-        if (!$job) {
-            $response->getBody()->write('Job nicht gefunden');
-            return $response->withStatus(404);
-        }
-
-        $html = file_get_contents(__DIR__ . '/../../app/View/review.html');
-        $html = str_replace('{{JOB_ID}}', $jobId, $html);
-        $html = str_replace('{{JOB_DATA}}', json_encode($job), $html);
+        $html = file_get_contents(__DIR__ . '/../../app/View/upload.html');
         $html = $this->injectFooter($html);
 
         $response->getBody()->write($html);
@@ -57,9 +39,6 @@ class ReviewController
         }
 
         $html = str_replace('{{FOOTER_LINKS}}', $footerExtra, $html);
-
-        // Fallback für alte Templates ohne Platzhalter
-        $html = preg_replace('/DataDachs v[\d.]+ – Lokale Pseudonymisierung ohne Cloud/', 'DataDachs v1.0.5 – Lokale Pseudonymisierung ohne Cloud' . $footerExtra, $html);
 
         return $html;
     }
