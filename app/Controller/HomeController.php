@@ -24,8 +24,10 @@ class HomeController
     {
         $impressum = getenv('DATADACHS_IMPRESSUM_URL') ?: '';
         $datenschutz = getenv('DATADACHS_DATENSCHUTZ_URL') ?: '';
-        $github = getenv('DATADACHS_GITHUB_URL') ?: 'https://github.com/muellerlukasopenclaw-design/datadachs';
-        $donate = getenv('DATADACHS_DONATE_URL') ?: '';
+
+        // Feste Links – Autor/Inhaber bleibt unabhängig vom Host
+        $github = 'https://github.com/muellerlukasopenclaw-design/datadachs';
+        $donate = 'https://www.paypal.com/paypalme/Lukas1809';
 
         $links = [];
         if ($impressum) {
@@ -34,17 +36,10 @@ class HomeController
         if ($datenschutz) {
             $links[] = '<a href="' . htmlspecialchars($datenschutz) . '" target="_blank">Datenschutz</a>';
         }
-        if ($github) {
-            $links[] = '<a href="' . htmlspecialchars($github) . '" target="_blank">GitHub</a>';
-        }
-        if ($donate) {
-            $links[] = '<a href="' . htmlspecialchars($donate) . '" target="_blank">☕ Kaffee spendieren</a>';
-        }
+        $links[] = '<a href="' . htmlspecialchars($github) . '" target="_blank">GitHub</a>';
+        $links[] = '<a href="' . htmlspecialchars($donate) . '" target="_blank">☕ Kaffee spendieren</a>';
 
-        $footerExtra = '';
-        if (!empty($links)) {
-            $footerExtra = ' | ' . implode(' | ', $links);
-        }
+        $footerExtra = ' | ' . implode(' | ', $links);
 
         $html = str_replace('{{FOOTER_LINKS}}', $footerExtra, $html);
 
