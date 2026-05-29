@@ -374,7 +374,7 @@
             section.className = 'table-section';
             section.innerHTML = `<h2>Erkannte Muster</h2>`;
             if (!detected.findings || detected.findings.length === 0) {
-                section.innerHTML += `<div class="empty">Keine PII-Muster erkannt</div>`;
+                section.innerHTML += `<div class="empty">Keine potenziell personenbezogenen Daten erkannt</div>`;
             } else {
                 const table = document.createElement('table');
                 table.innerHTML = `
