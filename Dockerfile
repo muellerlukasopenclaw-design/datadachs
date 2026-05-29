@@ -35,8 +35,8 @@ COPY docker/php-pool.conf /usr/local/etc/php-fpm.d/www.conf
 COPY composer.json ./
 RUN composer install --no-dev --optimize-autoloader --no-interaction
 
-# Cache-Bust: 2026-05-29-13-30 (force rebuild)
-ARG CACHE_BUST=1
+# Cache-Bust: 2026-05-29-14-00 (force rebuild - pii-rules.php Regex-Fix)
+ARG CACHE_BUST=2
 
 # Restlicher Code
 COPY . .
