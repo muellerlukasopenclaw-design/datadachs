@@ -24,6 +24,8 @@ class HomeController
     {
         $impressum = getenv('DATADACHS_IMPRESSUM_URL') ?: '';
         $datenschutz = getenv('DATADACHS_DATENSCHUTZ_URL') ?: '';
+        $github = getenv('DATADACHS_GITHUB_URL') ?: 'https://github.com/muellerlukasopenclaw-design/datadachs';
+        $donate = getenv('DATADACHS_DONATE_URL') ?: '';
 
         $links = [];
         if ($impressum) {
@@ -31,6 +33,12 @@ class HomeController
         }
         if ($datenschutz) {
             $links[] = '<a href="' . htmlspecialchars($datenschutz) . '" target="_blank">Datenschutz</a>';
+        }
+        if ($github) {
+            $links[] = '<a href="' . htmlspecialchars($github) . '" target="_blank">GitHub</a>';
+        }
+        if ($donate) {
+            $links[] = '<a href="' . htmlspecialchars($donate) . '" target="_blank">☕ Kaffee spendieren</a>';
         }
 
         $footerExtra = '';
