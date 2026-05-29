@@ -101,7 +101,7 @@ class CsvParser
     {
         if ($column && isset($this->columnRules[$column])) {
             $rule = $this->columnRules[$column];
-            if ($rule['action'] === 'pseudonymize' && $rule['faker_method']) {
+            if (isset($rule['action']) && $rule['action'] === 'pseudonymize' && isset($rule['faker_method']) && $rule['faker_method']) {
                 return $this->faker->fake($rule['type'], $value);
             }
         }
