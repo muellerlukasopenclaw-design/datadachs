@@ -32,10 +32,25 @@ class ReviewController
         $html = file_get_contents(__DIR__ . '/../../app/View/review.html');
         $html = str_replace('{{JOB_ID}}', $jobId, $html);
         $html = str_replace('{{JOB_DATA}}', json_encode($job), $html);
+        $html = $this->injectVersion($html);
         $html = $this->injectFooter($html);
 
         $response->getBody()->write($html);
         return $response->withHeader('Content-Type', 'text/html');
+    }
+
+    private function injectVersion(string $html): string
+    {
+        $versionFile = __DIR__ . '/../../config/version.php';
+        $version = '1.0.0';
+        if (file_exists($versionFile)) {
+            $versionData = include $versionFile;
+            if (is_array($versionData) && isset($versionData['version'])) {
+                $version = $versionData['version'];
+            }
+        }
+        $html = str_replace('{{VERSION}}', htmlspecialchars($version), $html);
+        return $html;
     }
 
     private function injectFooter(string $html): string

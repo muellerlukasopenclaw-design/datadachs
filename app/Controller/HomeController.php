@@ -14,10 +14,25 @@ class HomeController
     public function showHome(Request $request, Response $response): Response
     {
         $html = file_get_contents(__DIR__ . '/../../app/View/upload.html');
+        $html = $this->injectVersion($html);
         $html = $this->injectFooter($html);
 
         $response->getBody()->write($html);
         return $response->withHeader('Content-Type', 'text/html');
+    }
+
+    private function injectVersion(string $html): string
+    {
+        $versionFile = __DIR__ . '/../../config/version.php';
+        $version = '1.0.0';
+        if (file_exists($versionFile)) {
+            $versionData = include $versionFile;
+            if (is_array($versionData) && isset($versionData['version'])) {
+                $version = $versionData['version'];
+            }
+        }
+        $html = str_replace('{{VERSION}}', htmlspecialchars($version), $html);
+        return $html;
     }
 
     private function injectFooter(string $html): string
