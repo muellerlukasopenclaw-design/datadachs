@@ -71,3 +71,5 @@ jobs:
           # Security-Scanning
           provenance: true
           sbom: true
+          # Force BuildKit to rebuild all layers (not just GHA cache)
+          no-cache: true

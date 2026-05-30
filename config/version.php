@@ -5,6 +5,6 @@
  */
 
 return [
-    'version' => '1.0.5',
-    'release_date' => '2026-05-29',
+    'version' => '1.0.12',
+    'release_date' => '2026-05-30',
 ];
