@@ -7,15 +7,18 @@
 namespace DataDachs\Parser;
 
 use DataDachs\Service\FakerEngine;
+use DataDachs\Service\PreserveRuleService;
 
 class TxtParser
 {
     private FakerEngine $faker;
     private array $patterns;
+    private ?PreserveRuleService $preserveService;
     
-    public function __construct(FakerEngine $faker)
+    public function __construct(FakerEngine $faker, ?PreserveRuleService $preserveService = null)
     {
         $this->faker = $faker;
+        $this->preserveService = $preserveService;
         $rules = require __DIR__ . '/../../config/pii-rules.php';
         $this->patterns = $rules['regex_patterns'] ?? [];
     }
@@ -97,6 +100,10 @@ class TxtParser
         
         // Ersetzen
         foreach ($filtered as $r) {
+            // Prüfe Preserve Rules
+            if ($this->preserveService && $this->preserveService->shouldPreserve($r['original'])) {
+                continue;
+            }
             $fake = $this->generateFake($r['type'], $r['original']);
             $content = substr_replace($content, $fake, $r['start'], strlen($r['original']));
         }

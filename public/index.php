@@ -72,6 +72,16 @@ $app->addErrorMiddleware(true, true, true);
 // Body Parsing
 $app->addBodyParsingMiddleware();
 
+// Security Headers Middleware
+$app->add(function ($request, $handler) {
+    $response = $handler->handle($request);
+    return $response
+        ->withHeader('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:;")
+        ->withHeader('X-Frame-Options', 'DENY')
+        ->withHeader('X-Content-Type-Options', 'nosniff')
+        ->withHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+});
+
 // === ROUTES ===
 
 // Health Check

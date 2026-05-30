@@ -8,18 +8,21 @@ namespace DataDachs\Parser;
 
 use DataDachs\Service\FakerEngine;
 use DataDachs\Service\PiiDetector;
+use DataDachs\Service\PreserveRuleService;
 
 class JsonParser
 {
     private PiiDetector $detector;
     private FakerEngine $faker;
+    private ?PreserveRuleService $preserveService;
     private array $keyRules = [];
     private int $maxDepth = 20;
     
-    public function __construct(PiiDetector $detector, FakerEngine $faker)
+    public function __construct(PiiDetector $detector, FakerEngine $faker, ?PreserveRuleService $preserveService = null)
     {
         $this->detector = $detector;
         $this->faker = $faker;
+        $this->preserveService = $preserveService;
     }
     
     /**
@@ -102,6 +105,10 @@ class JsonParser
                 if (isset($this->keyRules[$key])) {
                     $rule = $this->keyRules[$key];
                     if ($rule['action'] === 'pseudonymize' && $rule['faker_method']) {
+                        // Preserve Rules prüfen
+                        if ($this->preserveService && $this->preserveService->shouldPreserve((string) $value)) {
+                            continue;
+                        }
                         $value = $this->faker->fake($rule['type'], (string) $value);
                     }
                 }

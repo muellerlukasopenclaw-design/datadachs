@@ -87,13 +87,13 @@ class ProcessController
     private function pseudonymizeFile(string $filePath, string $type, array $rules): ?string
     {
         return match ($type) {
-            'sql' => (new SqlParser($this->detector, $this->faker))->pseudonymize(file_get_contents($filePath), $rules),
-            'csv' => (new CsvParser($this->detector, $this->faker))->pseudonymize(file_get_contents($filePath), $rules),
-            'json' => (new JsonParser($this->detector, $this->faker))->pseudonymize(file_get_contents($filePath), $rules),
-            'txt' => (new TxtParser($this->faker))->pseudonymize(file_get_contents($filePath), $rules),
-            'docx' => (new DocxParser($this->detector, $this->faker))->pseudonymize($filePath, $rules),
-            'xlsx' => (new XlsxParser($this->detector, $this->faker))->pseudonymize($filePath, $rules),
-            'pdf' => (new PdfParser($this->detector, $this->faker))->pseudonymize($filePath, $rules),
+            'sql' => (new SqlParser($this->detector, $this->faker, $this->preserveService))->pseudonymize(file_get_contents($filePath), $rules),
+            'csv' => (new CsvParser($this->detector, $this->faker, $this->preserveService))->pseudonymize(file_get_contents($filePath), $rules),
+            'json' => (new JsonParser($this->detector, $this->faker, $this->preserveService))->pseudonymize(file_get_contents($filePath), $rules),
+            'txt' => (new TxtParser($this->faker, $this->preserveService))->pseudonymize(file_get_contents($filePath), $rules),
+            'docx' => (new DocxParser($this->detector, $this->faker, $this->preserveService))->pseudonymize($filePath, $rules),
+            'xlsx' => (new XlsxParser($this->detector, $this->faker, $this->preserveService))->pseudonymize($filePath, $rules),
+            'pdf' => (new PdfParser($this->detector, $this->faker, $this->preserveService))->pseudonymize($filePath, $rules),
             default => null,
         };
     }

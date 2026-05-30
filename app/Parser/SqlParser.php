@@ -8,18 +8,21 @@ namespace DataDachs\Parser;
 
 use DataDachs\Service\FakerEngine;
 use DataDachs\Service\PiiDetector;
+use DataDachs\Service\PreserveRuleService;
 
 class SqlParser
 {
     private PiiDetector $detector;
     private FakerEngine $faker;
+    private ?PreserveRuleService $preserveService;
     private array $columnRules = [];
     private string $currentTable = '';
     
-    public function __construct(PiiDetector $detector, FakerEngine $faker)
+    public function __construct(PiiDetector $detector, FakerEngine $faker, ?PreserveRuleService $preserveService = null)
     {
         $this->detector = $detector;
         $this->faker = $faker;
+        $this->preserveService = $preserveService;
     }
     
     /**
@@ -292,6 +295,12 @@ class SqlParser
             $rule = $tableRules[$column];
             if ($rule['action'] === 'pseudonymize' && isset($rule['type'])) {
                 $unquoted = $this->unquote($value);
+                
+                // Preserve Rules prüfen
+                if ($this->preserveService && $this->preserveService->shouldPreserve($unquoted)) {
+                    return $value;
+                }
+                
                 $fake = $this->faker->fake($rule['type'], $unquoted);
                 return $this->quote($fake, $value);
             }

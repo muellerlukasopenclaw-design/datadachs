@@ -8,20 +8,23 @@ namespace DataDachs\Parser;
 
 use DataDachs\Service\FakerEngine;
 use DataDachs\Service\PiiDetector;
+use DataDachs\Service\PreserveRuleService;
 
 class CsvParser
 {
     private PiiDetector $detector;
     private FakerEngine $faker;
+    private ?PreserveRuleService $preserveService;
     private array $columnRules = [];
     private string $delimiter = ',';
     private string $enclosure = '"';
     private string $escape = '\\';
     
-    public function __construct(PiiDetector $detector, FakerEngine $faker)
+    public function __construct(PiiDetector $detector, FakerEngine $faker, ?PreserveRuleService $preserveService = null)
     {
         $this->detector = $detector;
         $this->faker = $faker;
+        $this->preserveService = $preserveService;
     }
     
     /**
@@ -102,6 +105,10 @@ class CsvParser
         if ($column && isset($this->columnRules[$column])) {
             $rule = $this->columnRules[$column];
             if (isset($rule['action']) && $rule['action'] === 'pseudonymize' && isset($rule['faker_method']) && $rule['faker_method']) {
+                // Preserve Rules prüfen
+                if ($this->preserveService && $this->preserveService->shouldPreserve($value)) {
+                    return $value;
+                }
                 return $this->faker->fake($rule['type'], $value);
             }
         }
