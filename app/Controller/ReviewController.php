@@ -76,8 +76,8 @@ class ReviewController
 
         $html = str_replace('{{FOOTER_LINKS}}', $footerExtra, $html);
 
-        // Fallback für alte Templates ohne Platzhalter
-        $html = preg_replace('/DataDachs v[\d.]+ – Lokale Pseudonymisierung ohne Cloud/', 'DataDachs v1.0.9 – Lokale Pseudonymisierung ohne Cloud' . $footerExtra, $html);
+        // Fallback für alte Templates ohne Platzhalter – behalte aktuelle Version bei
+        $html = preg_replace('/DataDachs v([\d.]+) – Lokale Pseudonymisierung ohne Cloud/', 'DataDachs v$1 – Lokale Pseudonymisierung ohne Cloud' . $footerExtra, $html);
 
         return $html;
     }
