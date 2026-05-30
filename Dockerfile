@@ -35,8 +35,9 @@ COPY docker/php-pool.conf /usr/local/etc/php-fpm.d/www.conf
 COPY composer.json ./
 RUN composer install --no-dev --optimize-autoloader --no-interaction
 
-# Cache-Bust: 2026-05-29-14-00 (force rebuild - pii-rules.php Regex-Fix)
-ARG CACHE_BUST=2
+# Cache-Bust: Force rebuild on every push by invalidating the layer cache
+# This ensures config changes (pii-rules.php, version.php, etc.) always land in the image
+RUN echo "cache-bust: $(date +%s)" > /dev/null
 
 # Restlicher Code
 COPY . .
