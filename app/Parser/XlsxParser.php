@@ -8,6 +8,7 @@ namespace DataDachs\Parser;
 
 use DataDachs\Service\PiiDetector;
 use DataDachs\Service\FakerEngine;
+use DataDachs\Service\PreserveRuleService;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 
@@ -15,11 +16,13 @@ class XlsxParser
 {
     private PiiDetector $detector;
     private FakerEngine $faker;
+    private ?PreserveRuleService $preserveService;
     
-    public function __construct(PiiDetector $detector, FakerEngine $faker)
+    public function __construct(PiiDetector $detector, FakerEngine $faker, ?PreserveRuleService $preserveService = null)
     {
         $this->detector = $detector;
         $this->faker = $faker;
+        $this->preserveService = $preserveService;
     }
     
     /**
@@ -154,6 +157,12 @@ class XlsxParser
                     }
                     
                     $type = $rule['type'];
+                    
+                    // Preserve Rules prüfen
+                    if ($this->preserveService && $this->preserveService->shouldPreserve($value)) {
+                        continue;
+                    }
+                    
                     $fakeValue = $this->faker->fake($type, $value);
                     $cell->setValue($fakeValue);
                 }

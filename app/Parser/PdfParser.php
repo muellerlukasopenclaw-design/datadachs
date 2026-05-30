@@ -11,16 +11,19 @@ namespace DataDachs\Parser;
 
 use DataDachs\Service\PiiDetector;
 use DataDachs\Service\FakerEngine;
+use DataDachs\Service\PreserveRuleService;
 
 class PdfParser
 {
     private PiiDetector $detector;
     private FakerEngine $faker;
+    private ?PreserveRuleService $preserveService;
     
-    public function __construct(PiiDetector $detector, FakerEngine $faker)
+    public function __construct(PiiDetector $detector, FakerEngine $faker, ?PreserveRuleService $preserveService = null)
     {
         $this->detector = $detector;
         $this->faker = $faker;
+        $this->preserveService = $preserveService;
     }
     
     /**
@@ -162,6 +165,12 @@ class PdfParser
             foreach ($patterns as $pattern) {
                 $text = preg_replace_callback($pattern, function ($match) use ($type) {
                     $original = $match[0];
+                    
+                    // Preserve Rules prüfen
+                    if ($this->preserveService && $this->preserveService->shouldPreserve($original)) {
+                        return $original;
+                    }
+                    
                     return $this->faker->fake($type, $original);
                 }, $text);
             }
