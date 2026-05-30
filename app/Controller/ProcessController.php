@@ -46,8 +46,14 @@ class ProcessController
             return $this->jsonResponse($response, ['error' => 'Job nicht gefunden'], 404);
         }
 
+        // Konvertiere einfaches Array ['phone_de', 'email'] zu assoziativem Array ['phone_de' => true, 'email' => true]
+        $enabledTypes = [];
+        foreach ($confirmedRules as $rule) {
+            $enabledTypes[$rule] = true;
+        }
+
         try {
-            $result = $this->pseudonymizeFile($job['file_path'], $job['file_type'], $confirmedRules);
+            $result = $this->pseudonymizeFile($job['file_path'], $job['file_type'], $enabledTypes);
 
             if ($result !== null) {
                 $resultPath = $this->jobManager->generateResultPath($job['original_name']);
